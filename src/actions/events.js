@@ -1,6 +1,7 @@
 import { types } from "../types/types";
 import { fetchConToken } from "../helpers/fetch";
 import { prepareEvents } from "../helpers/prepareEvents";
+import Swal from "sweetalert2";
 
 
 export const eventStartAddNew=(event)=>{
@@ -61,7 +62,52 @@ export const eventUpdated = ( event ) => ({
 });
 
 
-export const eventDeleted = () => ({ type: types.eventDeleted });
+export const eventStartUpdate=(event)=>{
+    return async(dispatch)=>{
+        try{
+           
+
+            const resp = await fetchConToken(`events/${event.id}`,event,'PUT')
+            const body = await resp.json()
+            if(body.ok){
+                dispatch(eventUpdated(event))
+            }
+            else{
+                Swal.fire('error',body.msg,'error');
+            }
+            
+            }
+
+        catch(error){
+            console.log(error)
+        }
+
+    }
+}
+
+export const eventStartDelete=()=>{
+    return async(dispatch,getState)=>{
+
+        const {id} = getState().calendar.activeEvent;
+        try{
+            const resp = await fetchConToken(`events/${id}`,{},'DELETE')
+            const body = await resp.json()
+            if(body.ok){
+                dispatch(eventDeleted())
+            }
+            else{
+                Swal.fire('Error',body.msg,'error')
+            }
+        }
+        catch(error){
+            console.log(error)
+        }
+
+    }
+
+} 
+
+ const eventDeleted = () => ({ type: types.eventDeleted });
 
 
 export const eventStartLoading=()=>{
@@ -74,7 +120,6 @@ export const eventStartLoading=()=>{
             const events = prepareEvents(body.eventos)
             dispatch(eventLoaded(events))
             
-            console.log(events)
 
         }
         catch(error){
@@ -89,3 +134,7 @@ const eventLoaded =(events)=>({
     type: types.eventLoaded,
     payload:events
 })
+
+
+
+export const eventLogout=()=>({type:types.eventLogout})
